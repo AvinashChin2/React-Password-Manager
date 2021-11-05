@@ -19,17 +19,44 @@ class InputField extends Component {
     usernameInput: '',
     passwordInput: '',
     passwordList: [],
+    searchInput: '',
     count: 0,
   }
 
-  renderPasswordsList = () => {
+  deleteButton = id => {
     const {passwordList} = this.state
-    return (
+    const updatedPasswordList = passwordList.filter(
+      eachPassword => eachPassword.id !== id,
+    )
+    this.setState(prevState => ({
+      passwordList: updatedPasswordList,
+      count: prevState.count - 1,
+    }))
+  }
+
+  renderPasswordsList = () => {
+    const {passwordList, searchInput} = this.state
+    const searchResults = passwordList.filter(eachItem =>
+      eachItem.websiteInput.toLowerCase().includes(searchInput.toLowerCase()),
+    )
+    const noPasswords = passwordList < 1
+
+    return noPasswords ? (
+      <div className="no-passwords-container">
+        <img
+          src="https://assets.ccbp.in/frontend/react-js/no-passwords-img.png"
+          alt="no passwords"
+          className="no-password-image"
+        />
+        <p className="no-password-name">No Passwords</p>
+      </div>
+    ) : (
       <>
-        {passwordList.map(eachPassword => (
+        {searchResults.map(eachPassword => (
           <PasswordComponent
             passwordDetails={eachPassword}
             key={eachPassword.id}
+            deleteButton={this.deleteButton}
           />
         ))}
       </>
@@ -52,6 +79,7 @@ class InputField extends Component {
       websiteInput,
       passwordInput,
       isClicked: false,
+      isActive: false,
       count,
       initialClassName: initialBackgroundClassName,
     }
@@ -82,8 +110,24 @@ class InputField extends Component {
     })
   }
 
+  onChangeSearchInput = event => {
+    this.setState({searchInput: event.target.value})
+  }
+
+  onClickCheckBox = () => {
+    const {isActive} = this.state
+    this.setState({isActive: true})
+  }
+
   render() {
-    const {websiteInput, usernameInput, passwordInput, count} = this.state
+    const {
+      websiteInput,
+      usernameInput,
+      passwordInput,
+      count,
+      searchInput,
+    } = this.state
+
     return (
       <div className="app-container">
         <div className="logo-container">
@@ -167,9 +211,8 @@ class InputField extends Component {
         <div className="passwords-container">
           <div className="heading-search-container">
             <div className="heading-container">
-              <h1 className="password-heading">
-                Your Passwords <span className="count">{count}</span>
-              </h1>
+              <h1 className="password-heading">Your Passwords</h1>
+              <p className="count">{count}</p>
             </div>
             <div className="search-container">
               <div className="search-icon-container">
@@ -183,6 +226,8 @@ class InputField extends Component {
                 type="search"
                 className="search-box"
                 placeholder="Search"
+                value={searchInput}
+                onChange={this.onChangeSearchInput}
               />
             </div>
           </div>
@@ -193,10 +238,12 @@ class InputField extends Component {
                 type="checkbox"
                 className="checkbox-box"
                 htmlFor="checkbox"
+                onClick={this.onClickCheckBox}
               />
               Show Passwords
             </label>
           </div>
+
           <ul className="password-inside-container">
             {this.renderPasswordsList()}
           </ul>
